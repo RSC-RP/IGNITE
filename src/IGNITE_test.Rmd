@@ -24,7 +24,7 @@ Follow through, https://developers.google.com/maps/documentation/javascript/over
 
 ```{r}
 # test 
-key <- "AIzaSyDXPoiutMMsXwz36jZTRQ_-PKyYSlO0uAc"
+key <- ""
 df <- google_distance(origins = list(c("Melbourne Airport, Australia"),
                                      c("MCG, Melbourne, Australia"),
                                      c(-37.81659, 144.9841)),
