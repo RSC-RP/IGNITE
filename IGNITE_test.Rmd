@@ -1,0 +1,94 @@
+---
+title: "IGNITE_test"
+author: "yeji Bae"
+date: "2023-10-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages("googleway")
+library(googleway)
+
+key <- "my_api_key"
+set_key(key = key)
+google_keys()
+```
+First, you need to get your API to use google maps.
+Follow through, https://developers.google.com/maps/documentation/javascript/overview. 
+(had to provide my IP address)
+-> can't use the API due to unauthorization 
+
+```{r}
+# test 
+key <- "AIzaSyDXPoiutMMsXwz36jZTRQ_-PKyYSlO0uAc"
+df <- google_distance(origins = list(c("Melbourne Airport, Australia"),
+                                     c("MCG, Melbourne, Australia"),
+                                     c(-37.81659, 144.9841)),
+                      destinations = c("Portsea, Melbourne, Australia"),
+                      key = key)
+
+head(df)
+```
+```{r}
+df <- tram_stops
+df$info <- paste0("<b>Stop Name: </b>", df$stop_name)
+
+map_key <- "your_api_key"
+google_map(data = df, key = map_key) %>%
+  add_markers(lat = "stop_lat", lon = "stop_lon", info_window = "info")
+```
+
+# ggmap
+```{r}
+devtools::install_github("dkahle/ggmap", ref = "tidyup")
+# install.packages("ggplot2")
+install.packages("tidyverse")
+library(ggmap)
+chicago <- get_stamenmap(bbox = c(left = -88.0225, bottom = 41.5949, 
+                                  right = -87.2713, top = 42.0677), 
+                         zoom = 11)
+
+ggmap(chicago)
+murder <- subset(crime, offense == "murder")
+murder_ <- murder %>% dplyr::select(-c("address", "street", "location", "premise", "beat","number", "block", "time", "date", "type", "offense", "hour", "suffix", "month", "day"))
+murder_ # all we need is lon and lat 
+ggmap::qmplot(lon, lat, data = murder_, colour = I('red'), size = I(3), darken = .3)
+
+summary(murder_)
+```
+
+# Real Data
+```{r}
+test <- read.csv("2018_Central_Park_Squirrel_Census_-_Squirrel_Data.csv")
+test_ <- test[1:157, c("X", "Y")]
+colnames(test_) <- c("lon", "lat")
+colnames(test) <- c("lon", "lat")
+table(is.na(test_))
+View(test_)
+View(murder)
+summary(test_)
+View(test_)
+
+murder$lon <- test_$X
+murder$lat <- test_$Y
+
+test_$lon <- murder_$lon
+test_$lat <- murder_$lat
+
+# test_$lon[1] <- -73 # replaced one
+ggmap::qmplot(lon, lat, data = test_, zoom = 13, colour = I('red'), size = I(3), darken = .3)
+
+ggplot(data = test_, aes(x = lon, y = lat)) +  
+  geom_point()
+
+# full data
+ggplot(data = test, aes(x = lon, y = lat)) +  
+  geom_point()
+ggmap::qmplot(lon, lat, data = test, zoom = 13, colour = I('red'), size = I(0.2), darken = .3)
+```
+
+
