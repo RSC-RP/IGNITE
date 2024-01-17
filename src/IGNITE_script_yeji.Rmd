@@ -1,0 +1,174 @@
+---
+title: "IGNITE_script"
+author: "yeji Bae"
+date: "2024-01-12"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+```
+
+
+# Visualization 
+
+Visualization is for better understanding of Data. 
+https://www.data-to-viz.com/#line.
+
+  - numeric data : numerical values that represent quantities and can be measured or counted. It can be continous or discrete.
+  (examples: age, height, weight, temperature ... )
+  - categorical data : represents categories or groups (examples: gender, color, city of residence ... )
+  
+```{r}
+# test <- read.csv("../data/2018_2020_Combined_-_Squirrel_Data.csv")
+# test[is.na(test)] <- "unknown"
+```
+
+
+## Step 0. Look into the data
+```{r}
+# import data (need to modify based on how kids get data)
+setwd("~/Desktop/YJ/CHILD/IGNITE/src") 
+squirrel_data <- read.csv("../data/2018_Central_Park_Squirrel_Census_-_Squirrel_Data.csv", na.strings=c("","NA")) 
+squirrel_data_interesting <- squirrel_data %>%
+  select(c(Date, Primary.Fur.Color, Climbing, Running, Chasing, Eating))
+
+write.csv(squirrel_data_interesting, "../data/Squirrel_part2.csv")
+
+head(squirrel_data) # check your data
+
+# select the interesting columns
+# ex) the date,  squirrel color, Running/Chasing/Climbing/Eating
+colnames(squirrel_data) # you can print just column names 
+```
+
+  [ Q Ask kids, from columns of the data, which could be numeric or categorical data
+  - numeric data:
+  - categorical data:  
+  
+  ex) Date, Primary.Fur.Color]
+
+It is always import to extract the meaningful information from any complicated dataset.
+So we will first select interesting few columns and visualize them using multiple plots to understand the data better.
+
+## Step 1. Select the interested data
+```{r}
+squirrel_data_interesting <- squirrel_data %>%
+  select(c(Date, Primary.Fur.Color, Climbing, Running, Chasing, Eating)) # you can choose any column that you are interested in. 
+```
+
+
+## Step 2. visualize the interested data 
+```{r}
+library(ggplot2)
+```
+
+ggplot2 is a data visualization package in R that allows for the creation of complex and customizable plots from data in a data frame.
+
+### Bar plot 
+```{r, fig.width=6}
+# simple bar plot 
+ggplot(squirrel_data_interesting, aes(x= Primary.Fur.Color)) +
+  geom_bar(stat = "count")
+
+# fill/color the each bar 
+ggplot(squirrel_data_interesting, aes(x= Primary.Fur.Color, fill = Primary.Fur.Color)) +
+  geom_bar(stat = "count")
+ggplot(squirrel_data_interesting, aes(x= Primary.Fur.Color, fill = Primary.Fur.Color)) + # give the real Fur color 
+  geom_bar(stat = "count", fill = c("black", "#D2691E", "gray", "white"))
+
+# other options
+# shows one by one 
+# library(ggrepel) , geom_text_repel 
+ggplot(squirrel_data_interesting, aes(x= Running, fill = Primary.Fur.Color)) +
+  geom_bar(stat = "count") + 
+  geom_text(stat = "count", aes(label = ..count..), position = position_stack(vjust = 0.5),  size = 3, color = "pink") +  # for count label
+  # geom_text_repel(stat = "count", aes(label = ..count..), position = position_stack(vjust = 0.9),  size = 3, color = "pink", box.padding = 0, label.padding = 0) +  # for count label
+  scale_fill_manual(values = c("black", "#D2691E", "darkgray", "lightgray"), na.value = "lightgray") +
+  labs(title = "Squirrel Counts by Climbing") +  # title
+  xlab("Primary Fur Color") +  # X-axis label
+  ylab("Count") +  # Y-axis label
+  guides(fill = guide_legend(title = "Fur Color")) + # modify legends
+  theme_minimal()
+```
+
+[ Practice: 
+  1. draw barplot of Primary.Fur.Color as x-asix and count as y-axis and fill the color with 'Climbing/Running/Eating/Chasing' 
+  2. change the color for 'false' and 'true' values 
+  extra: label the counts, titles 
+  * Hint: You can switch x and fill from the last example we drew together. ]
+  
+```{r}
+ggplot(squirrel_data_interesting, aes(x= Primary.Fur.Color, fill = Climbing)) +
+  geom_bar(stat = "count") + 
+  geom_text(stat = "count", aes(label = ..count..), position = position_stack(vjust = 0.7),  size = 3, color = "white") +  # for count label
+  scale_fill_manual(values = c("true" = "darkgreen", "false" = "darkred"))
+```
+
+### Density plot
+Density plot shows the representation of the distribution of a continous variable. 
+```{r}
+library(lubridate) # an package to handle dates
+squirrel_data_interesting_ <- squirrel_data_interesting %>%
+  mutate(Date = mdy(as.character(squirrel_data_interesting$Date)))
+
+# compare the Date column after transformation
+squirrel_data_interesting$Date[1:10]
+squirrel_data_interesting_$Date[1:10]
+
+ggplot(squirrel_data_interesting_, aes(x = Date, fill = Primary.Fur.Color)) + 
+  geom_density(alpha = 0.8) + 
+  scale_fill_manual(values = c("black", "#D2691E", "darkgray", "white"), na.value = "white") + 
+  facet_grid(Primary.Fur.Color ~ .)
+```
+
+[ Practice: Using _labs()_, _xlab()_, _guides()_
+  1. Give the title 
+  2. Change X-axis to '2018 Date' 
+  3. Change Legend to 'Fur Color' ]
+  
+```{r}
+ggplot(squirrel_data_interesting_, aes(x = Date, fill = Primary.Fur.Color)) + 
+  geom_density(alpha = 0.8) + 
+  scale_fill_manual(values = c("black", "#D2691E", "darkgray", "white"), na.value = "white") + 
+  facet_grid(Primary.Fur.Color ~ .) +
+  labs(title = "Squirrel Found Date") +  # title
+  xlab("2018 Date") +  # X-axis label
+  guides(fill = guide_legend(title = "Fur Color")) 
+```
+
+# ggmap 
+Show some example, what we can do if we use more techniques and libraries.
+(Since we just get 10days free API keys, i will re-create an API-key in late January just for demo. It will take approximately 7 minutes.)
+
+```{r, eval=FALSE}
+library(ggmap)
+
+# data preprocessing
+squirrel_data_subset <- squirrel_data %>%
+  select(c("X","Y", "Primary.Fur.Color")) %>% 
+  rename(lon = X,
+         lat = Y)
+
+## example (if the function run more than a minutes, cancel it and use the small number for 'zoom' argument)
+ggmap::qmplot(lon, lat, data = squirrel_data_subset, zoom = 14, colour = I('red'), size = I(0.2), darken = .1)
+
+## Highlighting your own column 
+ggmap::qmplot(lon, lat, data = squirrel_data_subset, zoom = 14, colour = Primary.Fur.Color, size = I(0.2), darken = .1)
+
+## change colors to your taste
+my_colors <- c("black", "brown", "gray", "white")  
+ggmap::qmplot(lon, lat, data = test, zoom = 14, color = Primary.Fur.Color, size = I(0.4), darken = .5) + 
+  scale_color_manual(values = my_colors)
+```
+
+We need API key for this. 
+
+What is API key? 
+API: application programming interface (API) 
+An API key is a unique identifier that authenticates and tracks requests associated with your project.
+It also used to identify invalid or malicious requests. In this example, we needed API key for ggmap library.
+
+![API](../data/API.jpeg)
+
+
